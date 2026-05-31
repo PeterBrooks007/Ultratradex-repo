@@ -21,7 +21,7 @@ const sendEmail = async (subject, send_to, template, reply_to, cc) => {
       name: "ultratradex Platform",
       link: "https://ultratradex.io/",
       // Optional product logo
-      logo: 'https://ultratradex.io/logo.png',
+      logo: 'https://res.cloudinary.com/dusmg7vh0/image/upload/v1780233081/logo_ngn2tj.png',
        // Custom logo height
       logoHeight: '70px'
     },
