@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Environment files
+.env
+.env.*   # Ignore other environment variants, like .env.production or .env.development
+
+# Build output (if applicable)
+dist/     # For build tools like Babel or TypeScript
+build/    # Alternate build output directory
+
+# Debug files
+*.swp     # Swap files for Unix/Linux systems (e.g., Vim)
+*.bak     # Backup files
+*.tmp     # Temporary files
+
+# Cache files
+.cache/
+*.cache
+
+# IDE/editor configurations
+.vscode/  # Visual Studio Code settings (optional, personal preference)
+.idea/    # JetBrains IDE files (e.g., WebStorm, IntelliJ)
+
+# System files
+.DS_Store # macOS system file
+Thumbs.db # Windows system file
+
+# Temporary upload files
+uploads/  # If you use a directory for temporary file uploads
+
+# Process manager files
+pids/
+*.pid
+*.seed
+
+# Coverage output
+coverage/ # Output from testing tools like Jest
+
+# Dependency lockfiles (if applicable)
+package-lock.json
+yarn.lock # Optional if you’re not using lockfiles in your workflow
