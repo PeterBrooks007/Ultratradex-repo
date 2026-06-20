@@ -128,7 +128,7 @@ const Profile = () => {
   const size = UseWindowSize();
   const { isLoading: appLoading } = useSelector((state) => state.app);
   const { user, isLoading, isLoggedIn, conversionRate } = useSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -204,66 +204,65 @@ const Profile = () => {
   };
 
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-   
-   const savePhoto = async (e) => {
-     e.preventDefault();
-     setUploadLoading(true);
-   
-     try {
-       if (profileImage !== null) {
-         // Check if the file is an allowed image type
-         const validImageTypes = ["image/jpeg", "image/jpg", "image/png"];
-         if (!validImageTypes.includes(profileImage.type)) {
-           toast.error("Invalid file type. Only JPEG and PNG are allowed.");
-           setUploadLoading(false);
-           return;
-         }
-   
-         // Check if the file size exceeds the limit
-         if (profileImage.size > MAX_FILE_SIZE) {
-           toast.error("File size exceeds the 5MB limit.");
-           setUploadLoading(false);
-           return;
-         }
-   
-         // Check if the compressed file is a valid image by loading it
-         const imageLoadCheck = new Promise((resolve, reject) => {
-           const img = new Image();
-           img.src = URL.createObjectURL(profileImage);
-           img.onload = () => resolve(true);
-           img.onerror = () => reject(false);
-         });
-   
-         const isValidImage = await imageLoadCheck;
-         if (!isValidImage) {
-           toast.error("The file is not a valid image.");
-           setUploadLoading(false);
-           return;
-         }
-   
-         // If all checks pass, proceed with the upload
-         const formData = new FormData();
-         formData.append("image", profileImage);
-   
-         const id = user?._id;
-   
-         dispatch(updatePhoto({ id, formData }));
+
+  const savePhoto = async (e) => {
+    e.preventDefault();
+    setUploadLoading(true);
+
+    try {
+      if (profileImage !== null) {
+        // Check if the file is an allowed image type
+        const validImageTypes = ["image/jpeg", "image/jpg", "image/png"];
+        if (!validImageTypes.includes(profileImage.type)) {
+          toast.error("Invalid file type. Only JPEG and PNG are allowed.");
+          setUploadLoading(false);
+          return;
+        }
+
+        // Check if the file size exceeds the limit
+        if (profileImage.size > MAX_FILE_SIZE) {
+          toast.error("File size exceeds the 5MB limit.");
+          setUploadLoading(false);
+          return;
+        }
+
+        // Check if the compressed file is a valid image by loading it
+        const imageLoadCheck = new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = URL.createObjectURL(profileImage);
+          img.onload = () => resolve(true);
+          img.onerror = () => reject(false);
+        });
+
+        const isValidImage = await imageLoadCheck;
+        if (!isValidImage) {
+          toast.error("The file is not a valid image.");
+          setUploadLoading(false);
+          return;
+        }
+
+        // If all checks pass, proceed with the upload
+        const formData = new FormData();
+        formData.append("image", profileImage);
+
+        const id = user?._id;
+
+        dispatch(updatePhoto({ id, formData }));
 
         // console.log({ id, formData })
-   
-         // Reset the image preview and loading state
-         setImagePreview(null);
-         setUploadLoading(false);
-       } else {
-         toast.error("No image selected.");
-         setUploadLoading(false);
-       }
-     } catch (error) {
-       setUploadLoading(false);
-       toast.error(error.message);
-     }
-   };
-   
+
+        // Reset the image preview and loading state
+        setImagePreview(null);
+        setUploadLoading(false);
+      } else {
+        toast.error("No image selected.");
+        setUploadLoading(false);
+      }
+    } catch (error) {
+      setUploadLoading(false);
+      toast.error(error.message);
+    }
+  };
 
   const [openReferralDrawer, setReferralDrawer] = useState(false);
   const [openEditProfileDrawer, setEditProfileDrawer] = useState(false);
@@ -359,47 +358,41 @@ const Profile = () => {
   };
   //End Faqs Dialog
 
-
-
   // Start of 2fa-authenticaton
-    const [checked, setChecked] = useState(user?.isTwoFactorEnabled || false);
-  
-    useEffect(() => {
-      // if(user?.isTwoFactorEnabled) {
-        setChecked(user?.isTwoFactorEnabled);
-      // }
-    }, [user?.isTwoFactorEnabled]);
+  const [checked, setChecked] = useState(user?.isTwoFactorEnabled || false);
 
-  
+  useEffect(() => {
+    // if(user?.isTwoFactorEnabled) {
+    setChecked(user?.isTwoFactorEnabled);
+    // }
+  }, [user?.isTwoFactorEnabled]);
+
   // Handle switch change
   const handleSwitchChange = (event) => {
     const isChecked = event.target.checked;
     setChecked(isChecked); // Update the checked state directly
-  
+
     setTimeout(() => {
-      handleFormSubmit(isChecked); 
-    }, 600); 
+      handleFormSubmit(isChecked);
+    }, 600);
   };
-  
-    const handleFormSubmit = async (isChecked) => {
-      const userData = {
-        isTwoFactorEnabled: isChecked
-      }
-      // console.log(userData);
-      await dispatch(twofaAuthentication(userData));
+
+  const handleFormSubmit = async (isChecked) => {
+    const userData = {
+      isTwoFactorEnabled: isChecked,
     };
-    // End of 2fa-authenticaton
+    // console.log(userData);
+    await dispatch(twofaAuthentication(userData));
+  };
+  // End of 2fa-authenticaton
 
+  const { isLoading: coinPriceLoading, allCoins } = useSelector(
+    (state) => state.coinPrice,
+  );
 
-
-
-    const { isLoading: coinPriceLoading, allCoins } = useSelector(
-      (state) => state.coinPrice
-    );
-    
   const combinedAssets = user?.assets?.map((asset) => {
     const priceData = allCoins?.find(
-      (price) => price?.symbol === asset?.symbol?.toUpperCase()
+      (price) => price?.symbol === asset?.symbol?.toUpperCase(),
     );
     // console.log("asset?.symbol", asset?.symbol?.toUpperCase())
     // console.log(`priceData.quotes.${[user.currency.code]}.price`, priceData?.quotes?.[user.currency.code]?.price)
@@ -415,19 +408,16 @@ const Profile = () => {
     return { ...asset, price: 0, totalValue: 0 };
   });
 
-
-    const totalWalletBalance = Array.isArray(combinedAssets)
+  const totalWalletBalance = Array.isArray(combinedAssets)
     ? combinedAssets.reduce((acc, asset) => acc + asset.totalValue, 0)
     : 0;
 
   const totalWalletBalanceManual = Array.isArray(user?.assets)
     ? user?.assets.reduce(
         (total, asset) => total + (asset.ManualFiatbalance || 0),
-        0
+        0,
       )
     : 0;
-
-  
 
   return (
     <>
@@ -638,7 +628,7 @@ const Profile = () => {
                                       ? { notation: "compact" }
                                       : {}),
                                   }).format(
-                                    user?.balance * conversionRate?.rate
+                                    user?.balance * conversionRate?.rate,
                                   )
                                 : Intl.NumberFormat("en-US", {
                                     style: "currency",
@@ -676,32 +666,32 @@ const Profile = () => {
                               Wallet Balance
                             </Typography>
                             {user?.isManualAssetMode ? (
-                        <Typography fontWeight={"600"} >
-                          {Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: user?.currency?.code,
-                            ...(totalWalletBalanceManual > 999999
-                              ? { notation: "compact" }
-                              : {}),
-                          }).format(totalWalletBalanceManual)}
-                        </Typography>
-                      ) : (
-                        <Typography fontWeight={"600"} >
-                          {coinPriceLoading ? (
-                            <Skeleton variant="text" width={"200px"} />
-                          ) : allCoins.length !== 0 ? (
-                            Intl.NumberFormat("en-US", {
-                              style: "currency",
-                              currency: user?.currency?.code,
-                              ...(totalWalletBalance > 999999
-                                ? { notation: "compact" }
-                                : {}),
-                            }).format(totalWalletBalance)
-                          ) : (
-                            "UNAVAILABLE"
-                          )}
-                        </Typography>
-                      )}
+                              <Typography fontWeight={"600"}>
+                                {Intl.NumberFormat("en-US", {
+                                  style: "currency",
+                                  currency: user?.currency?.code,
+                                  ...(totalWalletBalanceManual > 999999
+                                    ? { notation: "compact" }
+                                    : {}),
+                                }).format(totalWalletBalanceManual)}
+                              </Typography>
+                            ) : (
+                              <Typography fontWeight={"600"}>
+                                {coinPriceLoading ? (
+                                  <Skeleton variant="text" width={"200px"} />
+                                ) : allCoins.length !== 0 ? (
+                                  Intl.NumberFormat("en-US", {
+                                    style: "currency",
+                                    currency: user?.currency?.code,
+                                    ...(totalWalletBalance > 999999
+                                      ? { notation: "compact" }
+                                      : {}),
+                                  }).format(totalWalletBalance)
+                                ) : (
+                                  "UNAVAILABLE"
+                                )}
+                              </Typography>
+                            )}
                           </Stack>
                         </Stack>
                       </Box>
@@ -739,7 +729,7 @@ const Profile = () => {
                                       ? { notation: "compact" }
                                       : {}),
                                   }).format(
-                                    user?.totalDeposit * conversionRate?.rate
+                                    user?.totalDeposit * conversionRate?.rate,
                                   )
                                 : Intl.NumberFormat("en-US", {
                                     style: "currency",
@@ -776,25 +766,33 @@ const Profile = () => {
                               Profit Earned
                             </Typography>
                             <Typography fontWeight={"600"}>
-                              {conversionRate?.rate
+                              {user?.earnedTotal < 1
                                 ? Intl.NumberFormat("en-US", {
-                                    style: "currency",
-                                    currency: conversionRate?.code,
-                                    ...(user?.earnedTotal *
-                                      conversionRate?.rate >
-                                    9999999
-                                      ? { notation: "compact" }
-                                      : {}),
-                                  }).format(
-                                    user?.earnedTotal * conversionRate?.rate
-                                  )
-                                : Intl.NumberFormat("en-US", {
                                     style: "currency",
                                     currency: user?.currency?.code,
                                     ...(user?.earnedTotal > 9999999
                                       ? { notation: "compact" }
                                       : {}),
-                                  }).format(user?.earnedTotal)}
+                                  }).format(0)
+                                : conversionRate?.rate
+                                  ? Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency: conversionRate?.code,
+                                      ...(user?.earnedTotal *
+                                        conversionRate?.rate >
+                                      9999999
+                                        ? { notation: "compact" }
+                                        : {}),
+                                    }).format(
+                                      user?.earnedTotal * conversionRate?.rate,
+                                    )
+                                  : Intl.NumberFormat("en-US", {
+                                      style: "currency",
+                                      currency: user?.currency?.code,
+                                      ...(user?.earnedTotal > 9999999
+                                        ? { notation: "compact" }
+                                        : {}),
+                                    }).format(user?.earnedTotal)}
                             </Typography>
                           </Stack>
                         </Stack>
@@ -857,8 +855,6 @@ const Profile = () => {
                         </Typography>
                       </Stack>
                       <Typography fontWeight={"600"}>
-                       
-
                         {conversionRate?.rate
                           ? Intl.NumberFormat("en-US", {
                               style: "currency",
@@ -868,7 +864,7 @@ const Profile = () => {
                                 ? { notation: "compact" }
                                 : {}),
                             }).format(
-                              user?.referralBonus * conversionRate?.rate
+                              user?.referralBonus * conversionRate?.rate,
                             )
                           : Intl.NumberFormat("en-US", {
                               style: "currency",
@@ -902,7 +898,9 @@ const Profile = () => {
                         alignItems={"center"}
                         spacing={0.5}
                       >
-                        <Typography variant="subtitle2" fontWeight={"600"}>View</Typography>
+                        <Typography variant="subtitle2" fontWeight={"600"}>
+                          View
+                        </Typography>
                         <CaretRight size={20} />
                       </Stack>
                     </Stack>
@@ -979,7 +977,9 @@ const Profile = () => {
                         alignItems={"center"}
                         spacing={0.5}
                       >
-                        <Typography variant="subtitle1" fontWeight={"500"}>English</Typography>
+                        <Typography variant="subtitle1" fontWeight={"500"}>
+                          English
+                        </Typography>
                         <CaretRight size={20} />
                       </Stack>
                     </Stack>
@@ -1033,10 +1033,10 @@ const Profile = () => {
                         </Typography>
                       </Stack>
                       <IOSSwitch
-                    checked={checked}
-                    onChange={handleSwitchChange}
-                    name="switch1"
-                  />
+                        checked={checked}
+                        onChange={handleSwitchChange}
+                        name="switch1"
+                      />
                     </Stack>
 
                     <Stack
@@ -1063,7 +1063,7 @@ const Profile = () => {
                         sx={{ cursor: "pointer" }}
                       >
                         <Typography
-                        variant="subtitle2"
+                          variant="subtitle2"
                           fontWeight={"500"}
                           sx={{ textTransform: "capitalize" }}
                         >
@@ -1093,7 +1093,9 @@ const Profile = () => {
                         alignItems={"center"}
                         spacing={0.5}
                       >
-                        <Typography variant="subtitle2" fontWeight={"500"}>View</Typography>
+                        <Typography variant="subtitle2" fontWeight={"500"}>
+                          View
+                        </Typography>
                         <CaretRight size={20} />
                       </Stack>
                     </Stack>

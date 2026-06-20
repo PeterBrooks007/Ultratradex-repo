@@ -101,12 +101,12 @@ const Welcome = () => {
 
   const { user, allCoins, conversionRate } = useSelector((state) => state.auth);
 
-  const { allCoins: allCoins_coinpaprika, coinPriceLoading   } = useSelector((state) => state.coinPrice);
-
-
+  const { allCoins: allCoins_coinpaprika, coinPriceLoading } = useSelector(
+    (state) => state.coinPrice,
+  );
 
   const { unreadMessages, newNotifications } = useSelector(
-    (state) => state.totalCounts
+    (state) => state.totalCounts,
   );
 
   const [depositLoader, setdepositLoader] = useState(false);
@@ -662,7 +662,7 @@ const Welcome = () => {
                       <Avatar src={user?.photo} alt="profile picture" />
                       <Stack>
                         <Typography variant="h6" fontWeight={"600"}>
-                        {user?.firstname+" "+user?.lastname}
+                          {user?.firstname + " " + user?.lastname}
                         </Typography>
                         <Typography variant="caption">
                           {" "}
@@ -1165,29 +1165,31 @@ const Welcome = () => {
               ) : (
                 // <Typography>4.43547880 BTC</Typography>
 
-                <Typography >
-               {coinPriceLoading ? (
-                <Skeleton variant="text" width="150px" />
-              ) : (
-                <>
-                  {user?.balance &&
-                    allCoins_coinpaprika[0]?.quotes?.[user?.currency?.code?.toUpperCase()]?.price ? (
-                    <>
-                      {Number(
-                        user?.balance /
-                          allCoins_coinpaprika[0].quotes[user?.currency?.code.toUpperCase()].price
-                      ).toFixed(8)}{" "}
-                      {allCoins_coinpaprika[0].symbol.toUpperCase()}
-                    </>
+                <Typography>
+                  {coinPriceLoading ? (
+                    <Skeleton variant="text" width="150px" />
                   ) : (
-                    "0 BTC" // Fallback in case price or balance is unavailable
+                    <>
+                      {user?.balance &&
+                      allCoins_coinpaprika[0]?.quotes?.[
+                        user?.currency?.code?.toUpperCase()
+                      ]?.price ? (
+                        <>
+                          {Number(
+                            user?.balance /
+                              allCoins_coinpaprika[0].quotes[
+                                user?.currency?.code.toUpperCase()
+                              ].price,
+                          ).toFixed(8)}{" "}
+                          {allCoins_coinpaprika[0].symbol.toUpperCase()}
+                        </>
+                      ) : (
+                        "0 BTC" // Fallback in case price or balance is unavailable
+                      )}
+                    </>
                   )}
-                </>
+                </Typography>
               )}
-
-              </Typography>
-              )}
-
             </Box>
 
             <Divider
@@ -1227,33 +1229,36 @@ const Welcome = () => {
                     </Typography>
                   )}
 
-               {hideBalance ? (
-                <Typography> ********** BTC</Typography>
-              ) : (
-                // <Typography>4.43547880 BTC</Typography>
-
-                <Typography >
-               {coinPriceLoading ? (
-                <Skeleton variant="text" width="150px" />
-              ) : (
-                <>
-                  { user?.totalDeposit &&
-                    allCoins_coinpaprika[0]?.quotes?.[user?.currency?.code?.toUpperCase()]?.price ? (
-                    <>
-                      {Number(
-                        user?.totalDeposit /
-                          allCoins_coinpaprika[0].quotes[user?.currency?.code.toUpperCase()].price
-                      ).toFixed(8)}{" "}
-                      {allCoins_coinpaprika[0].symbol.toUpperCase()}
-                    </>
+                  {hideBalance ? (
+                    <Typography> ********** BTC</Typography>
                   ) : (
-                    "0 BTC" // Fallback in case price or balance is unavailable
-                  )}
-                </>
-              )}
+                    // <Typography>4.43547880 BTC</Typography>
 
-              </Typography>
-              )}
+                    <Typography>
+                      {coinPriceLoading ? (
+                        <Skeleton variant="text" width="150px" />
+                      ) : (
+                        <>
+                          {user?.totalDeposit &&
+                          allCoins_coinpaprika[0]?.quotes?.[
+                            user?.currency?.code?.toUpperCase()
+                          ]?.price ? (
+                            <>
+                              {Number(
+                                user?.totalDeposit /
+                                  allCoins_coinpaprika[0].quotes[
+                                    user?.currency?.code.toUpperCase()
+                                  ].price,
+                              ).toFixed(8)}{" "}
+                              {allCoins_coinpaprika[0].symbol.toUpperCase()}
+                            </>
+                          ) : (
+                            "0 BTC" // Fallback in case price or balance is unavailable
+                          )}
+                        </>
+                      )}
+                    </Typography>
+                  )}
                 </Box>
                 <Divider
                   orientation="vertical"
@@ -1270,53 +1275,65 @@ const Welcome = () => {
                     </Typography>
                   ) : (
                     <Typography variant="h4" fontWeight={"500"} mt={"-5px"}>
-                      {conversionRate?.rate
+                      {user?.earnedTotal < 1
                         ? Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: conversionRate?.code,
-                            ...(user?.earnedTotal * conversionRate?.rate >
-                            9999999
-                              ? { notation: "compact" }
-                              : {}),
-                          }).format(user?.earnedTotal * conversionRate?.rate)
-                        : Intl.NumberFormat("en-US", {
                             style: "currency",
                             currency: user?.currency?.code,
                             ...(user?.earnedTotal > 9999999
                               ? { notation: "compact" }
                               : {}),
-                          }).format(user?.earnedTotal)}
+                          }).format(0)
+                        : conversionRate?.rate
+                          ? Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: conversionRate?.code,
+                              ...(user?.earnedTotal * conversionRate?.rate >
+                              9999999
+                                ? { notation: "compact" }
+                                : {}),
+                            }).format(user?.earnedTotal * conversionRate?.rate)
+                          : Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: user?.currency?.code,
+                              ...(user?.earnedTotal > 9999999
+                                ? { notation: "compact" }
+                                : {}),
+                            }).format(user?.earnedTotal)}
                     </Typography>
                   )}
 
-          {hideBalance ? (
-                          <Typography> ********** BTC</Typography>
-                        ) : (
-                          // <Typography>4.43547880 BTC</Typography>
+                  {hideBalance ? (
+                    <Typography> ********** BTC</Typography>
+                  ) : (
+                    // <Typography>4.43547880 BTC</Typography>
 
-                          <Typography >
-                        {coinPriceLoading ? (
-                          <Skeleton variant="text" width="150px" />
-                        ) : (
-                          <>
-                            {user?.earnedTotal &&
-                              allCoins_coinpaprika[0]?.quotes?.[user?.currency?.code?.toUpperCase()]?.price ? (
-                              <>
-                                {Number(
-                                  user?.earnedTotal /
-                                    allCoins_coinpaprika[0].quotes[user?.currency?.code.toUpperCase()].price
-                                ).toFixed(8)}{" "}
-                                {allCoins_coinpaprika[0].symbol.toUpperCase()}
-                              </>
-                            ) : (
-                              "0 BTC" // Fallback in case price or balance is unavailable
-                              // "N/A" // Fallback in case price or balance is unavailable
-                            )}
-                          </>
-                        )}
-
-                        </Typography>
-                        )}
+                    <Typography>
+                      {coinPriceLoading ? (
+                        <Skeleton variant="text" width="150px" />
+                      ) : (
+                        <>
+                          {user?.earnedTotal &&
+                          user?.earnedTotal > 1 &&
+                          allCoins_coinpaprika[0]?.quotes?.[
+                            user?.currency?.code?.toUpperCase()
+                          ]?.price ? (
+                            <>
+                              {Number(
+                                user?.earnedTotal /
+                                  allCoins_coinpaprika[0].quotes[
+                                    user?.currency?.code.toUpperCase()
+                                  ].price,
+                              ).toFixed(8)}{" "}
+                              {allCoins_coinpaprika[0].symbol.toUpperCase()}
+                            </>
+                          ) : (
+                            "0 BTC" // Fallback in case price or balance is unavailable
+                            // "N/A" // Fallback in case price or balance is unavailable
+                          )}
+                        </>
+                      )}
+                    </Typography>
+                  )}
                 </Box>
               </>
             )}
@@ -1411,22 +1428,32 @@ const Welcome = () => {
                       <Typography fontWeight={"600"}> ********</Typography>
                     ) : (
                       <Typography fontWeight={"600"}>
-                        {conversionRate?.rate
+                        {user?.earnedTotal < 1
                           ? Intl.NumberFormat("en-US", {
                               style: "currency",
-                              currency: conversionRate?.code,
-                              ...(user?.earnedTotal * conversionRate?.rate >
-                              999999
-                                ? { notation: "compact" }
-                                : {}),
-                            }).format(user?.earnedTotal * conversionRate?.rate)
-                          : Intl.NumberFormat("en-US", {
-                              style: "currency",
                               currency: user?.currency?.code,
-                              ...(user?.earnedTotal > 999999
+                              ...(user?.earnedTotal > 9999999
                                 ? { notation: "compact" }
                                 : {}),
-                            }).format(user?.earnedTotal)}
+                            }).format(0)
+                          : conversionRate?.rate
+                            ? Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: conversionRate?.code,
+                                ...(user?.earnedTotal * conversionRate?.rate >
+                                999999
+                                  ? { notation: "compact" }
+                                  : {}),
+                              }).format(
+                                user?.earnedTotal * conversionRate?.rate,
+                              )
+                            : Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: user?.currency?.code,
+                                ...(user?.earnedTotal > 999999
+                                  ? { notation: "compact" }
+                                  : {}),
+                              }).format(user?.earnedTotal)}
                       </Typography>
                     )}
                   </Stack>

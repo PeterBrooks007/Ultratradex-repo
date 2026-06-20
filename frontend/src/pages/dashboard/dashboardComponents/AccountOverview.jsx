@@ -40,7 +40,7 @@ const AccountOverview = ({ profile, setProfile }) => {
   const elevation = theme.palette.mode === "light" ? 1 : 0;
 
   const { isLoading, user, conversionRate } = useSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   const [profileImage, setProfileImage] = useState(null);
@@ -91,42 +91,38 @@ const AccountOverview = ({ profile, setProfile }) => {
     }
   };
 
-
-  
   const { isLoading: coinPriceLoading, allCoins } = useSelector(
-    (state) => state.coinPrice
+    (state) => state.coinPrice,
   );
-  
-const combinedAssets = user?.assets?.map((asset) => {
-  const priceData = allCoins?.find(
-    (price) => price?.symbol === asset?.symbol?.toUpperCase()
-  );
-  // console.log("asset?.symbol", asset?.symbol?.toUpperCase())
-  // console.log(`priceData.quotes.${[user.currency.code]}.price`, priceData?.quotes?.[user.currency.code]?.price)
-  if (priceData) {
-    const totalValue =
-      asset.balance * priceData?.quotes?.[user?.currency?.code]?.price;
-    return {
-      ...asset,
-      price: priceData?.quotes?.[user?.currency.code]?.price,
-      totalValue,
-    };
-  }
-  return { ...asset, price: 0, totalValue: 0 };
-});
 
+  const combinedAssets = user?.assets?.map((asset) => {
+    const priceData = allCoins?.find(
+      (price) => price?.symbol === asset?.symbol?.toUpperCase(),
+    );
+    // console.log("asset?.symbol", asset?.symbol?.toUpperCase())
+    // console.log(`priceData.quotes.${[user.currency.code]}.price`, priceData?.quotes?.[user.currency.code]?.price)
+    if (priceData) {
+      const totalValue =
+        asset.balance * priceData?.quotes?.[user?.currency?.code]?.price;
+      return {
+        ...asset,
+        price: priceData?.quotes?.[user?.currency.code]?.price,
+        totalValue,
+      };
+    }
+    return { ...asset, price: 0, totalValue: 0 };
+  });
 
   const totalWalletBalance = Array.isArray(combinedAssets)
-  ? combinedAssets.reduce((acc, asset) => acc + asset.totalValue, 0)
-  : 0;
+    ? combinedAssets.reduce((acc, asset) => acc + asset.totalValue, 0)
+    : 0;
 
-const totalWalletBalanceManual = Array.isArray(user?.assets)
-  ? user?.assets.reduce(
-      (total, asset) => total + (asset.ManualFiatbalance || 0),
-      0
-    )
-  : 0;
-
+  const totalWalletBalanceManual = Array.isArray(user?.assets)
+    ? user?.assets.reduce(
+        (total, asset) => total + (asset.ManualFiatbalance || 0),
+        0,
+      )
+    : 0;
 
   return (
     <Stack spacing={2}>
@@ -283,32 +279,32 @@ const totalWalletBalanceManual = Array.isArray(user?.assets)
                       Wallet Balance
                     </Typography>
                     {user?.isManualAssetMode ? (
-                        <Typography fontWeight={"600"} >
-                          {Intl.NumberFormat("en-US", {
+                      <Typography fontWeight={"600"}>
+                        {Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: user?.currency?.code,
+                          ...(totalWalletBalanceManual > 999999
+                            ? { notation: "compact" }
+                            : {}),
+                        }).format(totalWalletBalanceManual)}
+                      </Typography>
+                    ) : (
+                      <Typography fontWeight={"600"}>
+                        {coinPriceLoading ? (
+                          <Skeleton variant="text" width={"200px"} />
+                        ) : allCoins.length !== 0 ? (
+                          Intl.NumberFormat("en-US", {
                             style: "currency",
                             currency: user?.currency?.code,
-                            ...(totalWalletBalanceManual > 999999
+                            ...(totalWalletBalance > 999999
                               ? { notation: "compact" }
                               : {}),
-                          }).format(totalWalletBalanceManual)}
-                        </Typography>
-                      ) : (
-                        <Typography fontWeight={"600"} >
-                          {coinPriceLoading ? (
-                            <Skeleton variant="text" width={"200px"} />
-                          ) : allCoins.length !== 0 ? (
-                            Intl.NumberFormat("en-US", {
-                              style: "currency",
-                              currency: user?.currency?.code,
-                              ...(totalWalletBalance > 999999
-                                ? { notation: "compact" }
-                                : {}),
-                            }).format(totalWalletBalance)
-                          ) : (
-                            "UNAVAILABLE"
-                          )}
-                        </Typography>
-                      )}
+                          }).format(totalWalletBalance)
+                        ) : (
+                          "UNAVAILABLE"
+                        )}
+                      </Typography>
+                    )}
                   </Stack>
                 </Stack>
               </Box>
@@ -370,22 +366,30 @@ const totalWalletBalanceManual = Array.isArray(user?.assets)
                       Profit Earned
                     </Typography>
                     <Typography fontWeight={"600"}>
-                      {conversionRate?.rate
+                      {user?.earnedTotal < 1
                         ? Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: conversionRate?.code,
-                            ...(user?.earnedTotal * conversionRate?.rate >
-                            9999999
-                              ? { notation: "compact" }
-                              : {}),
-                          }).format(user?.earnedTotal * conversionRate?.rate)
-                        : Intl.NumberFormat("en-US", {
                             style: "currency",
                             currency: user?.currency?.code,
                             ...(user?.earnedTotal > 9999999
                               ? { notation: "compact" }
                               : {}),
-                          }).format(user?.earnedTotal)}
+                          }).format(0)
+                        : conversionRate?.rate
+                          ? Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: conversionRate?.code,
+                              ...(user?.earnedTotal * conversionRate?.rate >
+                              9999999
+                                ? { notation: "compact" }
+                                : {}),
+                            }).format(user?.earnedTotal * conversionRate?.rate)
+                          : Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: user?.currency?.code,
+                              ...(user?.earnedTotal > 9999999
+                                ? { notation: "compact" }
+                                : {}),
+                            }).format(user?.earnedTotal)}
                     </Typography>
                   </Stack>
                 </Stack>
