@@ -671,6 +671,99 @@ const adminSetUserAutoTradeValidator = [
     return value.trim() === '' ? 
       Promise.reject(new Error('winLoseValue cannot be empty or contain HTML entities')) : value;
   }),
+
+
+
+   body('autoTradeCronJobStatus')
+  .notEmpty().withMessage('autoTradeCronJobStatus is required')
+  .isString().withMessage("autoTradeCronJobStatus must be a string")
+//   .matches(/^[a-zA-Z0-9]+$/).withMessage('firstname must only contain letters Numbers')
+//   .isAlphanumeric().withMessage('First name must contain only letters and numbers and no white space.')
+  .isLength({ max: 20 }).withMessage('autoTradeCronJobStatus cannot exceed 20 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('autoTradeCronJobStatus contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('autoTradeCronJobStatus cannot be empty or contain HTML entities')) : value;
+  }),
+
+
+  
+   body('maxAutoTradeCronJob')
+  .notEmpty().withMessage('maxAutoTradeCronJob is required')
+  .isString().withMessage("maxAutoTradeCronJob must be a string")
+//   .matches(/^[a-zA-Z0-9]+$/).withMessage('firstname must only contain letters Numbers')
+//   .isAlphanumeric().withMessage('First name must contain only letters and numbers and no white space.')
+  .isLength({ max: 20 }).withMessage('maxAutoTradeCronJob cannot exceed 20 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('maxAutoTradeCronJob contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('maxAutoTradeCronJob cannot be empty or contain HTML entities')) : value;
+  }),
+
+   body('numberOfTrades')
+  .notEmpty().withMessage('numberOfTrades is required')
+  .isString().withMessage("numberOfTrades must be a string")
+//   .matches(/^[a-zA-Z0-9]+$/).withMessage('firstname must only contain letters Numbers')
+//   .isAlphanumeric().withMessage('First name must contain only letters and numbers and no white space.')
+  .isLength({ max: 20 }).withMessage('numberOfTrades cannot exceed 20 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('numberOfTrades contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('numberOfTrades cannot be empty or contain HTML entities')) : value;
+  }),
+
+   body('lastTradeAt')
+  .isString().withMessage("lastTradeAt must be a string")
+
+,
+
+
+  
+   body('autotradeDuration')
+  .notEmpty().withMessage('autotradeDuration is required')
+  .isString().withMessage("autotradeDuration must be a string")
+//   .matches(/^[a-zA-Z0-9]+$/).withMessage('firstname must only contain letters Numbers')
+//   .isAlphanumeric().withMessage('First name must contain only letters and numbers and no white space.')
+  .isLength({ max: 20 }).withMessage('autotradeDuration cannot exceed 20 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('autotradeDuration contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('autotradeDuration cannot be empty or contain HTML entities')) : value;
+  }),
+
+
+   body('autoTradeCronJobStartTime')
+  .isString().withMessage("autoTradeCronJobStartTime must be a string")
+
+,
   
 ];
 
@@ -943,8 +1036,58 @@ const changePinValidator = [
 ];
 
 
+// Validation middleware for adminAddAlertNotification input
+const adminAddAlertNotificationValidator = [
+ 
+
+  body('subject')
+  .notEmpty().withMessage('to is required')
+  .isString().withMessage("to must be a string")
+  .isLength({ max: 50 }).withMessage('to cannot exceed 50 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('to contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('to cannot be empty or contain HTML entities')) : value;
+  }),
+
+  body('message')
+  .notEmpty().withMessage('message is required')
+  .isString().withMessage("message must be a string")
+  .isLength({ max: 500 }).withMessage('message cannot exceed 500 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('message contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('message cannot be empty or contain HTML entities')) : value;
+  }),
+
+   body('buttonText')
+  // .notEmpty().withMessage('buttonText is required')
+  .isString().withMessage("buttonText must be a string")
+  .isLength({ max: 200 }).withMessage('message cannot exceed 200 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  ,
+
+ 
+  
+];
+
+
 
 
 
 // Export the validation middleware
-module.exports = {adminUpdateUserValidator, changePasswordValidator, twofaAuthenticationValidator, adminFundTradeBalanceValidator, adminAddNewAssetWalletToUserValidator, adminApproveIdValidator, adminChangeUserCurrencyValidator, adminActivateDemoAccountValidator, adminSetUserAutoTradeValidator, adminSetUserWithdrawalLockValidator, adminSendCustomizedMailValidator, adminAddGiftRewardValidator, kycSetupValidator, changePinValidator };
+module.exports = {adminUpdateUserValidator, changePasswordValidator, twofaAuthenticationValidator, adminFundTradeBalanceValidator, adminAddNewAssetWalletToUserValidator, adminApproveIdValidator, adminChangeUserCurrencyValidator, adminActivateDemoAccountValidator, adminSetUserAutoTradeValidator, adminSetUserWithdrawalLockValidator, adminSendCustomizedMailValidator, adminAddGiftRewardValidator, kycSetupValidator, changePinValidator, adminAddAlertNotificationValidator };

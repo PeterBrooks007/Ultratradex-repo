@@ -898,6 +898,57 @@ const Welcome = () => {
         </Stack>
 
         <Stack
+          direction={"column"}
+          mt={{ xs: 1.5, md: 2 }}
+          justifyContent={"space-between"}
+          // display={{ xs: "flex", md: "none" }}
+          alignItems={"center"}
+          borderRadius={2}
+          spacing={2}
+        >
+          {user?.alertNotifications &&
+            user?.alertNotification?.length !== 0 &&
+            user?.alertNotifications?.map((alert) => (
+              <Stack
+                key={alert._id}
+                direction={"row"}
+                spacing={1}
+                p={2}
+                justifyContent={"space-between"}
+                alignItems={"flex-start"}
+                border={"2px solid green"}
+                // sx={{bgcolor:"gray"}}
+                borderRadius={3}
+              >
+                <Bell size={40} />
+
+                <Stack spacing={1}>
+                  <Typography fontWeight={"bold"} variant="" fontSize={16}>
+                    {alert.subject}
+                  </Typography>
+                  <Typography variant={""} sx={{fontSize: {xs: 14, md:16}}}>{alert.message}</Typography>
+
+                  {alert.buttonText && (
+                    <Button
+                      variant="contained"
+                      sx={{ height: 40, width: 100 }}
+                      onClick={handleOpenDepositDrawer}
+                    >
+                      {alert.buttonText}
+                    </Button>
+                  )}
+                </Stack>
+
+                {user?.role === "admin" && (
+                  <Button variant="contained" sx={{ height: 40 }}>
+                    Delete
+                  </Button>
+                )}
+              </Stack>
+            ))}
+        </Stack>
+
+        <Stack
           direction={"row"}
           mt={{ xs: 1.5, md: 2 }}
           justifyContent={"space-between"}

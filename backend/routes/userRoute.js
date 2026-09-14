@@ -55,10 +55,12 @@ const {
   forgotPassword,
   resetPassword,
   residencyVerification,
+  adminAddAlertNotification,
+  adminDeleteAlertNotification,
 
 } = require("../controllers/userController");
 const { protect, adminOnly } = require("../middleware/authMiddleware");
-const { changePasswordValidator, twofaAuthenticationValidator, adminUpdateUserValidator, adminFundTradeBalanceValidator, adminAddNewAssetWalletToUserValidator, adminApproveIdValidator, adminChangeUserCurrencyValidator, adminActivateDemoAccountValidator, adminSetUserAutoTradeValidator, adminSetUserWithdrawalLockValidator, adminSendCustomizedMailValidator, adminAddGiftRewardValidator, kycSetupValidator, changePinValidator } = require("../validators/userValidator");
+const { changePasswordValidator, twofaAuthenticationValidator, adminUpdateUserValidator, adminFundTradeBalanceValidator, adminAddNewAssetWalletToUserValidator, adminApproveIdValidator, adminChangeUserCurrencyValidator, adminActivateDemoAccountValidator, adminSetUserAutoTradeValidator, adminSetUserWithdrawalLockValidator, adminSendCustomizedMailValidator, adminAddGiftRewardValidator, kycSetupValidator, changePinValidator, adminAddAlertNotificationValidator } = require("../validators/userValidator");
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -236,6 +238,11 @@ router.post("/forgotPassword", forgotPassword);
 router.post("/resetPassword", resetPassword);
 
 router.patch("/residencyVerification", protect, upload.single('image'), residencyVerification);
+
+router.patch("/adminAddAlertNotification/:id", protect, adminOnly, adminAddAlertNotificationValidator, adminAddAlertNotification);
+
+router.patch("/adminDeleteAlertNotification/:id", protect, adminOnly, adminDeleteAlertNotification);
+
 
 
 

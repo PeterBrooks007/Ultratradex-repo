@@ -22,6 +22,15 @@ const giftRewardSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
+// Define the schema for each alertNotifications field
+
+const alertNotificationsSchema = new mongoose.Schema({
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  buttonText: { type: String },
+  createdAt: { type: Date, default: Date.now },
+});
+
 const userSchema = mongoose.Schema(
   {
     firstname: {
@@ -194,7 +203,7 @@ const userSchema = mongoose.Schema(
       default: "NOT VERIFIED",
       enum: ["NOT VERIFIED", "PENDING", "VERIFIED"],
     },
-    
+
     isEmailVerified: {
       type: Boolean,
       default: false,
@@ -209,6 +218,12 @@ const userSchema = mongoose.Schema(
         isAutoTradeActivated: true,
         type: "Random", // Always_Win or Always_Lose, or Random win or lose
         winLoseValue: "Thousand", // Ten, Hundred, Thousand, Million, Random
+        autoTradeCronJobStatus: "CLOSE", //OPEN  for cronjob autotrade
+        maxAutoTradeCronJob: 10, //max number of cron job to be done per day
+        numberOfTrades: 0, //numbers of trades already done by cron job for that day
+        lastTradeAt: null, // Time to check when last trade placed and also when the whole trade started
+        autotradeDuration: 3, // Numeric trade duration fallback in days (3days, 7days)
+        autoTradeCronJobStartTime: null, // //Time to check when the trade started
       },
     },
     withdrawalLocked: {
@@ -269,10 +284,14 @@ const userSchema = mongoose.Schema(
       type: Date,
       default: null,
     },
+    alertNotifications: {
+      type: [alertNotificationsSchema], // Array of giftReward objects
+      default: [], // Default to an empty array if not provided
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // //Encrypt pass before saving to db
@@ -303,7 +322,7 @@ userSchema.pre("save", async function (next) {
 //compare Otp
 userSchema.methods.correctOTP = async function (
   candidateOTP, //824356
-  userOTP // hjhuydfsfyhnkn =>
+  userOTP, // hjhuydfsfyhnkn =>
 ) {
   return await bcrypt.compare(candidateOTP, userOTP);
 };
