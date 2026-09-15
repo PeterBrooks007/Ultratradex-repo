@@ -280,7 +280,7 @@ const runAutoTradesForUsers = async () => {
 };
 
 // Cron interval execution (Runs every 30 minute)
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/30 * * * *", async () => {
   console.log(
     "[CRON] Scanning for users with autoTradeCronJobStatus === 'OPEN'...",
   );

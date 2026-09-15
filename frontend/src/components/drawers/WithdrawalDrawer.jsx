@@ -550,30 +550,32 @@ const WithdrawalDrawer = ({
 
                 {/* overlay if withdrawal locked */}
 
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: "50px",
-                    height: "100%",
-                    width: "98%",
-                    backgroundColor: "rgba(0,0,0,0.9)",
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Stack alignItems={"center"}>
-                    <Stack mt={10}>
-                      <IconButton>
-                        <Lock size={50} />
-                      </IconButton>
-                      <Typography variant="body1">
-                        Withdrawal currently locked,
-                      </Typography>
-                    </Stack>
+                {user?.autoTradeSettings?.autoTradeCronJobStatus == "OPEN" && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "50px",
+                      height: "100%",
+                      width: "98%",
+                      backgroundColor: "rgba(0,0,0,0.9)",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Stack alignItems={"center"}>
+                      <Stack mt={10}>
+                        <IconButton>
+                          <Lock size={50} />
+                        </IconButton>
+                        <Typography variant="body1">
+                          Withdrawal currently locked,
+                        </Typography>
+                      </Stack>
 
-                    <Typography variant="body1">Trade on going...</Typography>
-                  </Stack>
-                </Box>
+                      <Typography variant="body1">Trade on going...</Typography>
+                    </Stack>
+                  </Box>
+                )}
 
                 {first4wallet.map((wallet) => (
                   <>
