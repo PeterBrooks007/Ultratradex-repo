@@ -252,7 +252,7 @@ const AutoTradeSettingsDrawer = ({
             backgroundColor={colors.dashboardforeground[100]}
             width={"100%"}
             height={"100%"}
-            overflow={"auto"}
+            overflow={"hidden"}
           >
             <AppBar
               position="sticky"
@@ -283,7 +283,7 @@ const AutoTradeSettingsDrawer = ({
               </Toolbar>
             </AppBar>
 
-            <Box p={2}>
+            <Box p={2} height={"90%"} overflow={"auto"}>
               <Stack
                 direction={"row"}
                 justifyContent={"space-between"}

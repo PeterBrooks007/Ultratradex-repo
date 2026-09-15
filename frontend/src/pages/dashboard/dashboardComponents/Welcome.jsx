@@ -902,7 +902,7 @@ const Welcome = () => {
           mt={{ xs: 1.5, md: 2 }}
           justifyContent={"space-between"}
           // display={{ xs: "flex", md: "none" }}
-          alignItems={"center"}
+          alignItems={"flex-start"}
           borderRadius={2}
           spacing={2}
         >

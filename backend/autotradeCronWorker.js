@@ -22,14 +22,32 @@ const runAutoTradesForUsers = async () => {
     //========== Fetch all TradeSettings upfront =============//
     const allTradingSettings = await TradingSettings.find({});
 
+    // Check if current day is weekend (0 = Sunday, 6 = Saturday)
+    const dayOfWeek = new Date().getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
     // Filter out any settings records that lack valid trading pairs upfront
-    const validSettings = allTradingSettings.filter(
-      (setting) => setting.tradingPairs && setting.tradingPairs.length > 0,
-    );
+
+    const validSettings = allTradingSettings.filter((setting) => {
+      if (!setting.tradingPairs || setting.tradingPairs.length === 0)
+        return false;
+
+      // On weekends, allow ONLY crypto trading pairs
+      if (isWeekend) {
+        return (
+          setting.exchangeType &&
+          setting.exchangeType.toLowerCase().includes("crypto")
+        );
+      }
+
+      return true;
+    });
 
     if (validSettings.length === 0) {
       console.log(
-        "[AUTO-TRADE] No TradingSettings with valid trading pairs found.",
+        isWeekend
+          ? "[AUTO-TRADE] Weekend active: No valid Crypto settings found for trading."
+          : "[AUTO-TRADE] No TradingSettings with valid trading pairs found.",
       );
       return;
     }
@@ -153,8 +171,12 @@ const runAutoTradesForUsers = async () => {
         dynamicPrice = parseFloat(
           (Math.random() * (1.5 - 1.05) + 1.05).toFixed(4),
         );
-      } else if (selectedExchangeType.toLowerCase().includes("stock")) {
-        // Random Stock price between $50 and $500
+      } else if (
+        selectedExchangeType.toLowerCase().includes("stock") ||
+        selectedExchangeType.toLowerCase().includes("indices") ||
+        selectedExchangeType.toLowerCase().includes("commodities")
+      ) {
+        // Random Stock / Index / Commodity price between $50 and $500
         dynamicPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
       } else {
         // Fallback price generator
@@ -190,7 +212,7 @@ const runAutoTradesForUsers = async () => {
         roi: 0,
         status: "PENDING",
         expireTime: 1,
-        tradeFrom: "user",
+        tradeFrom: "bot",
         isProcessed: false,
         createdAt: new Date(),
       };
@@ -258,7 +280,7 @@ const runAutoTradesForUsers = async () => {
 };
 
 // Cron interval execution (Runs every 30 minute)
-cron.schedule("*/3 * * * *", async () => {
+cron.schedule("*/1 * * * *", async () => {
   console.log(
     "[CRON] Scanning for users with autoTradeCronJobStatus === 'OPEN'...",
   );

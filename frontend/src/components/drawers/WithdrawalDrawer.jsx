@@ -34,7 +34,9 @@ import {
   ClockCounterClockwise,
   Copy,
   ExclamationMark,
+  Key,
   Link,
+  Lock,
   Question,
   WarningCircle,
   X,
@@ -106,13 +108,13 @@ const initialState = {
 };
 
 const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
+  bgcolor: "background.paper",
+  border: "2px solid #000",
   boxShadow: 24,
   p: 4,
 };
@@ -130,19 +132,22 @@ const WithdrawalDrawer = ({
 
   const [openWithdrawalLockModal, setOpenWithdrawalLockModal] = useState(false);
   const handleOpenWithdrawalLockModal = () => setOpenWithdrawalLockModal(true);
-  const handleCloseWithdrawalLockModal = () => setOpenWithdrawalLockModal(false);
+  const handleCloseWithdrawalLockModal = () =>
+    setOpenWithdrawalLockModal(false);
 
   const [selectedWallet, setSelectedWallet] = useState(null);
   const [Wallet, setWallet] = useState(null);
 
   const { user } = useSelector((state) => state.auth);
 
-  const { isLoading: withdrawalIsLoading } = useSelector((state) => state.withdrawal);
+  const { isLoading: withdrawalIsLoading } = useSelector(
+    (state) => state.withdrawal,
+  );
 
   const { allCoins } = useSelector((state) => state.coinPrice);
 
   const { isLoading, allWalletAddress, walletAddress } = useSelector(
-    (state) => state.walletAddress
+    (state) => state.walletAddress,
   );
 
   useEffect(() => {
@@ -199,7 +204,8 @@ const WithdrawalDrawer = ({
 
   const priceData = Array.isArray(allCoins)
     ? allCoins.find(
-        (coin) => coin?.symbol === walletAddress?.walletSymbol?.toUpperCase().trim()
+        (coin) =>
+          coin?.symbol === walletAddress?.walletSymbol?.toUpperCase().trim(),
       )
     : null; // Use null instead of an empty array
 
@@ -214,8 +220,8 @@ const WithdrawalDrawer = ({
   const quickCheckAmountInCrypto = isCryptoInput
     ? Number(amountInCryoto) || 0
     : CryptoPrice
-    ? Number(amount / CryptoPrice)
-    : 0;
+      ? Number(amount / CryptoPrice)
+      : 0;
 
   useEffect(() => {
     if (allCoins.length === 0) {
@@ -230,7 +236,7 @@ const WithdrawalDrawer = ({
 
   const handleContinue = async (e) => {
     e.preventDefault();
-    if (user?.withdrawalLocked?.isWithdrawalLocked ) {
+    if (user?.withdrawalLocked?.isWithdrawalLocked) {
       return handleOpenWithdrawalLockModal();
     }
     if (user?.balance < quickCheckAmount) {
@@ -497,7 +503,13 @@ const WithdrawalDrawer = ({
                 <Divider />
               </Box>
 
-              <Stack p={1} spacing={1.5} overflow={"auto"} mt={1}>
+              <Stack
+                p={1}
+                spacing={1.5}
+                overflow={"auto"}
+                mt={1}
+                position={"relative"}
+              >
                 <Stack direction={"row"} justifyContent={"space-between"}>
                   <Stack px={1}>
                     <Typography variant="subtitle2">Total Balance</Typography>
@@ -536,6 +548,33 @@ const WithdrawalDrawer = ({
 
                 {/* select the withdrawl wallet */}
 
+                {/* overlay if withdrawal locked */}
+
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: "50px",
+                    height: "100%",
+                    width: "98%",
+                    backgroundColor: "rgba(0,0,0,0.9)",
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Stack alignItems={"center"}>
+                    <Stack mt={10}>
+                      <IconButton>
+                        <Lock size={50} />
+                      </IconButton>
+                      <Typography variant="body1">
+                        Withdrawal currently locked,
+                      </Typography>
+                    </Stack>
+
+                    <Typography variant="body1">Trade on going...</Typography>
+                  </Stack>
+                </Box>
+
                 {first4wallet.map((wallet) => (
                   <>
                     <Stack
@@ -552,6 +591,11 @@ const WithdrawalDrawer = ({
                       mx={1}
                       borderRadius={"15px"}
                       onClick={() => {
+                        if (
+                          user?.autoTradeSettings?.autoTradeCronJobStatus ==
+                          "OPEN"
+                        )
+                          return;
                         setSelectedWallet("enteramount");
                         setWallet(wallet?.walletName);
                         dispatch(SETSELECTEDWALLETADDRESS(wallet));
@@ -604,6 +648,10 @@ const WithdrawalDrawer = ({
                   mx={1}
                   borderRadius={"15px"}
                   onClick={() => {
+                    if (
+                      user?.autoTradeSettings?.autoTradeCronJobStatus == "OPEN"
+                    )
+                      return;
                     setSelectedWallet("enteramount");
                     setWallet("Bank");
                   }}
@@ -654,6 +702,10 @@ const WithdrawalDrawer = ({
                   mx={1}
                   borderRadius={"15px"}
                   onClick={() => {
+                    if (
+                      user?.autoTradeSettings?.autoTradeCronJobStatus == "OPEN"
+                    )
+                      return;
                     setSelectedWallet("allWallet");
                   }}
                   border={`${
@@ -900,28 +952,24 @@ const WithdrawalDrawer = ({
                   p={"5px 5px"}
                   alignItems={"center"}
                 >
-                  <IconButton  onClick={() => {
+                  <IconButton
+                    onClick={() => {
                       setSelectedWallet(null);
                       setIsConnecting(false);
-                    }}>
-                  <CaretLeft
-                    size={20}
-                    weight="bold"
-                   
-                  />
+                    }}
+                  >
+                    <CaretLeft size={20} weight="bold" />
                   </IconButton>
                   <Typography fontWeight={"600"}>
                     All Withdrawal Methods
                   </Typography>
-                  <IconButton  onClick={() => {
+                  <IconButton
+                    onClick={() => {
                       handleClose();
                       setSelectedWallet(null);
-                    }}>
-                  <X
-                    size={20}
-                    weight="bold"
-                   
-                  />
+                    }}
+                  >
+                    <X size={20} weight="bold" />
                   </IconButton>
                 </Stack>
               </Stack>
@@ -1179,8 +1227,8 @@ const WithdrawalDrawer = ({
                                 isCryptoInput
                                   ? amountInCryoto
                                   : allCoins.length === 0
-                                  ? amountInCryoto
-                                  : Number(amount / CryptoPrice).toFixed(8)
+                                    ? amountInCryoto
+                                    : Number(amount / CryptoPrice).toFixed(8)
                               }
                               onChange={(e) =>
                                 setAmountInCryoto(e.target.value)
@@ -1211,7 +1259,7 @@ const WithdrawalDrawer = ({
                         <ExclamationMark />
                       </Stack>
                       <OutlinedInput
-                      required
+                        required
                         name="description"
                         value={description}
                         onChange={handleInputChange}
@@ -1299,13 +1347,11 @@ const WithdrawalDrawer = ({
         )}
       </Drawer>
 
-
-
       <Dialog
         open={openWithdrawalLockModal}
         onClose={handleCloseWithdrawalLockModal}
         PaperProps={{
-          component: 'form',
+          component: "form",
           onSubmit: (event) => {
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
@@ -1314,20 +1360,19 @@ const WithdrawalDrawer = ({
             const code = formJson.code;
             console.log(code);
 
-            if(code == user?.withdrawalLocked?.lockCode ) {
-               setSelectedWallet(Wallet);
-               handleCloseWithdrawalLockModal();
+            if (code == user?.withdrawalLocked?.lockCode) {
+              setSelectedWallet(Wallet);
+              handleCloseWithdrawalLockModal();
             } else {
-              toast.error("Wrong Code")
+              toast.error("Wrong Code");
             }
-           
           },
         }}
       >
         <DialogTitle>{user?.withdrawalLocked?.lockSubject}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-           {user?.withdrawalLocked?.lockComment}
+            {user?.withdrawalLocked?.lockComment}
           </DialogContentText>
           <TextField
             autoFocus

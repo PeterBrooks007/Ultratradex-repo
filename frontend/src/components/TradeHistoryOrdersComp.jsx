@@ -64,7 +64,7 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
 
   const { id } = useParams();
 
-  const { user } = useSelector((state) => state.auth);
+  const { user, singleUser } = useSelector((state) => state.auth);
 
   const [isExpired, setIsExpired] = useState(false);
 
@@ -92,13 +92,15 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
           //set autotrade Outcome
           let outcomes;
           if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.type === "Random"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.type === "Random"
+              : singleUser?.autoTradeSettings?.type === "Random"
           ) {
             outcomes = ["Won", "Lose"];
           } else if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.type === "Always_Win"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.type === "Always_Win"
+              : singleUser?.autoTradeSettings?.type === "Always_Win"
           ) {
             outcomes = ["Won", "Won"];
           } else {
@@ -112,23 +114,27 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
           //set win rate
           let winrate;
           if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.winLoseValue === "Ten"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.winLoseValue === "Ten"
+              : singleUser?.autoTradeSettings?.winLoseValue === "Ten"
           ) {
             winrate = Math.floor(Math.random() * 100); //random number from 0 to 99
           } else if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.winLoseValue === "Hundred"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.winLoseValue === "Hundred"
+              : singleUser?.autoTradeSettings?.winLoseValue === "Hundred"
           ) {
             winrate = Math.floor(Math.random() * 900) + 100;
           } else if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.winLoseValue === "Thousand"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.winLoseValue === "Thousand"
+              : singleUser?.autoTradeSettings?.winLoseValue === "Thousand"
           ) {
             winrate = Math.floor(Math.random() * 9000) + 1000;
           } else if (
-            user?.role !== "admin" &&
-            user?.autoTradeSettings?.winLoseValue === "Random"
+            user?.role !== "admin"
+              ? user?.autoTradeSettings?.winLoseValue === "Random"
+              : singleUser?.autoTradeSettings?.winLoseValue === "Random"
           ) {
             winrate = Math.floor(Math.random() * 10000000);
           } else {
@@ -137,6 +143,7 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
 
           //End of set autotrade Outcome
 
+          // User autotrade and Bot trade completion
           if (
             user?.role !== "admin" &&
             user?.autoTradeSettings?.isAutoTradeActivated === true &&
@@ -189,6 +196,60 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
             // console.log(formData);
           }
 
+          //Admin bot trade completion
+          if (
+            user?.role === "admin" &&
+            user?.autoTradeSettings?.isAutoTradeActivated === true &&
+            trades?.status === "PENDING" &&
+            trades?.tradeFrom == "bot" &&
+            trades?.isProcessed === false
+          ) {
+            const formData = {
+              userId: user?.role === "admin" ? id : user?._id,
+              tradeData: {
+                tradeId: trades?._id,
+                exchangeType: trades?.exchangeType,
+                exchangeTypeIcon: trades?.exchangeTypeIcon,
+                symbols: trades?.symbols || "",
+                type: trades?.type || "",
+                buyOrSell: trades?.buyOrSell || "",
+                price: trades?.price || "",
+                ticks: trades?.ticks || "",
+                units: trades?.units || "",
+                risk: trades?.risk || "",
+                riskPercentage: trades?.riskPercentage ?? "",
+                expireTime: "-30",
+                amount: trades?.amount ?? "",
+                open: "90000",
+                close: "90100",
+                longOrShortUnit: "25X",
+                roi: "100%",
+                profitOrLossAmount:
+                  randomOutcome === "Lose" ? trades?.amount : winrate,
+                status: randomOutcome,
+                tradingMode: trades?.tradingMode,
+                tradeFrom: trades?.tradeFrom,
+                createdAt: trades?.createdAt,
+                isProcessed: true,
+              },
+            };
+
+            // dispatch(autoTradeUpdate({userId, formData}));
+            // dispatch(adminGetAllUserTrades(userId));
+
+            const makeApicall = async () => {
+              await dispatch(autoTradeUpdate({ userId, formData }));
+              await dispatch(adminGetAllUserTrades(userId));
+              user?.role === "admin"
+                ? dispatch(getSingleUserBalanceAfterTrade(id))
+                : dispatch(getUserBalanceAfterTrade());
+            };
+            makeApicall();
+
+            // console.log(formData);
+          }
+
+          //Admin manual trade completion
           if (trades?.tradeFrom === "admin" && trades?.isProcessed === false) {
             const formData = {
               userId: user?.role === "admin" ? id : user?._id,
@@ -256,8 +317,8 @@ export const CountdownTimer = ({ createdAt, expireTime, onExpire, trades }) => {
               ? "#009e4a"
               : "rgba(0, 255, 127, 0.8)"
             : theme.palette.mode === "light"
-            ? "#009e4a"
-            : "rgba(0, 255, 127, 0.8)",
+              ? "#009e4a"
+              : "rgba(0, 255, 127, 0.8)",
         fontWeight: "600",
       }}
     >
@@ -393,7 +454,7 @@ const TradeHistoryOrdersComp = ({ allTradeFiltered }) => {
 
   allTradeFiltered = Array.isArray(allTradeFiltered)
     ? [...allTradeFiltered].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
       )
     : [];
 
@@ -695,10 +756,10 @@ const TradeHistoryOrdersComp = ({ allTradeFiltered }) => {
                         !expiredTrades[trades?._id]
                           ? "orange"
                           : trades?.status?.toLowerCase() === "won"
-                          ? theme.palette.mode === "light"
-                            ? "#009e4a"
-                            : "rgba(0, 255, 127, 0.8)"
-                          : "red"
+                            ? theme.palette.mode === "light"
+                              ? "#009e4a"
+                              : "rgba(0, 255, 127, 0.8)"
+                            : "red"
                       }
                     >
                       {!expiredTrades[trades?._id] ||

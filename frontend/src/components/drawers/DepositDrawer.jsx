@@ -176,12 +176,12 @@ const DepositDrawer = ({
       return toast.error("Please enter a valid deposit amount.");
     }
 
-    if (amount < 500) {
+    if (amount < 1) {
       return toast.error(
         `Minimum deposit of ${Intl.NumberFormat("en-US", {
           style: "currency",
           currency: user?.currency?.code,
-        }).format(500)}`
+        }).format(1)}`
       );
     }
 
@@ -249,8 +249,8 @@ const DepositDrawer = ({
 
   const handleMakeRequest = async (e) => {
     e.preventDefault();
-    if (amount < 500) {
-      return toast.error("Minimum deposit of $500");
+    if (amount < 1) {
+      return toast.error("Minimum deposit of $1");
     }
 
     const userData = {
@@ -503,7 +503,7 @@ const DepositDrawer = ({
               </Box>
 
               <Stack p={1} spacing={1.5} overflow={"auto"} mt={1}>
-                <Stack direction={"row"} justifyContent={"space-between"}>
+                {/* <Stack direction={"row"} justifyContent={"space-between"}>
                   <Stack px={1}>
                     <Typography variant="subtitle2">Total Deposit</Typography>
                     <Typography variant="body1">
@@ -536,7 +536,7 @@ const DepositDrawer = ({
                       History
                     </Button>
                   </Stack>
-                </Stack>
+                </Stack> */}
 
                 {/* select the deposit wallet */}
 
@@ -848,7 +848,7 @@ const DepositDrawer = ({
                       </Typography>
                     </Stack>
 
-                    <Typography>
+                    {/* <Typography>
                       Balance:
                       {Intl.NumberFormat("en-US", {
                         style: "currency",
@@ -857,7 +857,7 @@ const DepositDrawer = ({
                           ? { notation: "compact" }
                           : {}),
                       }).format(user?.balance)}
-                    </Typography>
+                    </Typography> */}
                   </Stack>
 
                   <Divider flexItem />

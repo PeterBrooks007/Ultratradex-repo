@@ -46,9 +46,9 @@ const TradeHistory = () => {
   }, [dispatch]);
 
   const allTradeFiltered = Array.isArray(allTrades.trades)
-    ? [...allTrades.trades].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      ).slice(0, 5)
+    ? [...allTrades.trades]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 9)
     : [];
 
   return (
@@ -70,7 +70,7 @@ const TradeHistory = () => {
         <Box
           flex={{ xs: "", md: "30%" }}
           width={"100%"}
-          height={{xs: "460px", md: "500px"}}
+          height={{ xs: "780px", md: "500px" }}
           overflow={"auto"}
           backgroundColor={`${colors.dashboardbackground[100]}`}
           boxShadow={theme.palette.mode === "light" && `${theme.shadows[2]}`}
@@ -111,114 +111,118 @@ const TradeHistory = () => {
                 </Box>
               </Stack>
 
-              {allTradeFiltered && allTradeFiltered.length !== 0
-                ? allTradeFiltered.map((trade) => (
-                    <Stack
-                      key={trade?._id}
-                      direction={"row"}
-                      justifyContent={"space-between"}
-                      alignItems={"center"}
-                      borderTop={"1px solid grey"}
-                      borderBottom={"1px solid grey"}
-                      borderLeft={`2px solid ${
-                        trade?.status === "Won" ? "#009a4c" : "red"
-                      }`}
-                      borderRight={`2px solid ${
-                        trade?.status === "Won" ? "#009a4c" : "red"
-                      }`}
-                      p={"5px 10px"}
-                      borderRadius={"15px"}
-                    >
-                      <Stack spacing={0.5}>
-                        <Stack
-                          direction={"row"}
-                          spacing={0.5}
-                          alignItems={"center"}
+              {allTradeFiltered && allTradeFiltered.length !== 0 ? (
+                allTradeFiltered.map((trade) => (
+                  <Stack
+                    key={trade?._id}
+                    direction={"row"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
+                    borderTop={"1px solid grey"}
+                    borderBottom={"1px solid grey"}
+                    borderLeft={`2px solid ${
+                      trade?.status === "Won" ? "#009a4c" : "red"
+                    }`}
+                    borderRight={`2px solid ${
+                      trade?.status === "Won" ? "#009a4c" : "red"
+                    }`}
+                    p={"5px 10px"}
+                    borderRadius={"15px"}
+                  >
+                    <Stack spacing={0.5}>
+                      <Stack
+                        direction={"row"}
+                        spacing={0.5}
+                        alignItems={"center"}
+                      >
+                        <Typography
+                          variant={isMobile ? "subitle2" : "subtitle2"}
                         >
-                          <Typography
-                            variant={isMobile ? "subitle1" : "subtitle2"}
-                          >
-                            {trade?.symbols}
-                          </Typography>
-                          <Typography
-                            variant={isMobile ? "caption" : "caption"}
-                            color={
-                              trade?.buyOrSell === "Buy" ? "#009a4c" : "red"
-                            }
-                          >
-                            {trade?.buyOrSell}, {trade?.units} {trade?.units == 1 ? "unit" : "units"}
-                          </Typography>
-                        </Stack>
-
-                        <Stack
-                          direction={"row"}
-                          spacing={1}
-                          alignItems={"center"}
+                          {trade?.symbols}
+                        </Typography>
+                        <Typography
+                          variant={isMobile ? "caption" : "caption"}
+                          color={trade?.buyOrSell === "Buy" ? "#009a4c" : "red"}
                         >
-                          <Typography
-                            variant={isMobile ? "subtitle2" : "subtitle2"}
-                          >
-                            {trade?.open}
-                          </Typography>
-                          <ArrowRight />
-                          <Typography
-                            variant={isMobile ? "subtitle2" : "subtitle2"}
-                          >
-                            {trade?.close}
-                          </Typography>
-                        </Stack>
+                          {trade?.buyOrSell}, {trade?.units}{" "}
+                          {trade?.units == 1 ? "unit" : "units"}
+                        </Typography>
                       </Stack>
 
-                      <Stack>
-                        <Stack spacing={1} alignItems={"flex-end"}>
-                          <Typography
-                            variant={isMobile ? "subtitle2" : "subtitle2"}
-                          >
-                            {new Date(trade?.createdAt).toLocaleDateString(
-                              "en-GB",
-                              {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )}
-                          </Typography>
-
-                          <Typography
-                            variant={isMobile ? "subtitle2" : "subtitle2"}
-                            color={
-                              trade?.status === "Won" ? "#009a4c" : "red"
-                            }
-                            fontWeight={"bold"}
-                          >
-                            <span
-                              style={{
-                                display:
-                                  trade?.status === "Lose"
-                                    ? "inline-block"
-                                    : "none",
-                              }}
-                            >
-                              -
-                            </span>
-                            {trade?.status === "PENDING"
-                              ? "PENDING"
-                              : Intl.NumberFormat("en-US", {
-                                  style: "currency",
-                                  currency: user?.currency?.code,
-                                  ...(trade?.profitOrLossAmount > 999999
-                                    ? { notation: "compact" }
-                                    : {}),
-                                }).format(trade?.profitOrLossAmount)}
-                          </Typography>
-                        </Stack>
+                      <Stack
+                        direction={"row"}
+                        spacing={1}
+                        alignItems={"center"}
+                      >
+                        <Typography
+                          variant={isMobile ? "subtitle2" : "subtitle2"}
+                        >
+                          {trade?.open}
+                        </Typography>
+                        <ArrowRight />
+                        <Typography
+                          variant={isMobile ? "subtitle2" : "subtitle2"}
+                        >
+                          {trade?.close}
+                        </Typography>
                       </Stack>
                     </Stack>
-                  ))
-                : <Stack spacing={1} justifyContent={"center"} alignItems={"center"} mt={4}>
+
+                    <Stack>
+                      <Stack spacing={1} alignItems={"flex-end"}>
+                        <Typography
+                          variant={isMobile ? "subtitle2" : "subtitle2"}
+                        >
+                          {new Date(trade?.createdAt).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </Typography>
+
+                        <Typography
+                          variant={isMobile ? "subtitle2" : "subtitle2"}
+                          color={trade?.status === "Won" ? "#009a4c" : "red"}
+                          fontWeight={"bold"}
+                        >
+                          <span
+                            style={{
+                              display:
+                                trade?.status === "Lose"
+                                  ? "inline-block"
+                                  : "none",
+                            }}
+                          >
+                            -
+                          </span>
+                          {trade?.status === "PENDING"
+                            ? "PENDING"
+                            : Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: user?.currency?.code,
+                                ...(trade?.profitOrLossAmount > 999999
+                                  ? { notation: "compact" }
+                                  : {}),
+                              }).format(trade?.profitOrLossAmount)}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  </Stack>
+                ))
+              ) : (
+                <Stack
+                  spacing={1}
+                  justifyContent={"center"}
+                  alignItems={"center"}
+                  mt={4}
+                >
                   <XCircle size={52} />
                   <Typography variant="h6">NO TRADE AVAILABLE</Typography>
-                  </Stack>}
+                </Stack>
+              )}
             </Stack>
           </Stack>
         </Box>
