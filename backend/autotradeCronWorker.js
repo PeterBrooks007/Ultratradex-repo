@@ -1,10 +1,125 @@
 const dotenv = require("dotenv").config();
 const cron = require("node-cron");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
+const axios = require("axios");
+
 const User = require("./models/userModel"); // Adjust path as needed
 const Trades = require("./models/tradesModel"); // Adjust path as needed
 const Notifications = require("./models/notificationsModel");
 const TradingSettings = require("./models/tradingSettingsModel");
+
+// Path to store the daily bulk cached prices on your server
+const CACHE_FILE_PATH = path.join(__dirname, "dailyBulkPriceCache.json");
+
+/**
+ * Fetches the full market coin list from CoinGecko once per day
+ * and saves it locally to conserve your 10,000 monthly API limit.
+ */
+const getPriceFromBulkCache = async (targetSymbolPair) => {
+  try {
+    const todayStr = new Date().toISOString().split("T")[0]; // e.g., "2026-09-17"
+    let cacheData = null;
+
+    // 1. Check if bulk cache file exists and is from today
+    if (fs.existsSync(CACHE_FILE_PATH)) {
+      const fileContent = fs.readFileSync(CACHE_FILE_PATH, "utf8");
+      const parsed = JSON.parse(fileContent);
+
+      if (parsed.date === todayStr && Array.isArray(parsed.coins)) {
+        console.log(`[CACHE HIT] Using today's bulk coin market data.`);
+        cacheData = parsed.coins;
+      }
+    }
+
+    // 2. If no valid cache for today, make the SINGLE bulk API call to CoinGecko
+    if (!cacheData) {
+      console.log(
+        `[API CALL] Fetching full market coin list from CoinGecko... (1 call used)`,
+      );
+
+      const url =
+        "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&per_page=250&page=1";
+
+      const options = {
+        method: "GET",
+        url: url,
+        headers: {
+          accept: "application/json",
+          "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+          // "x-cg-demo-api-key": "12345",
+        },
+      };
+
+      const response = await axios(options);
+
+      cacheData = response.data;
+
+      // Save the bulk array with today's date stamp
+      const newCachePayload = {
+        date: todayStr,
+        coins: cacheData,
+      };
+
+      fs.writeFileSync(
+        CACHE_FILE_PATH,
+        JSON.stringify(newCachePayload, null, 2),
+        "utf8",
+      );
+    }
+
+    // 3. Clean the pair and extract the base symbol (e.g., "BTC-USD" or "BTCHYZ" -> "btc")
+    const cleanPair = targetSymbolPair.replace(/^[-/_]+/, "").toLowerCase();
+    let baseSymbol = "";
+
+    if (
+      cleanPair.includes("-") ||
+      cleanPair.includes("_") ||
+      cleanPair.includes("/")
+    ) {
+      const parts = cleanPair.split(/[-/_]/);
+      baseSymbol = parts[0];
+    } else {
+      baseSymbol = cleanPair.substring(0, 3); // Takes first 3 letters for concatenated pairs like BTCUSD/BTCHYZ
+    }
+
+    // 4. Search through the cached array for the extracted base symbol
+    const foundCoin = cacheData.find(
+      (coin) =>
+        coin.symbol.toLowerCase() === baseSymbol ||
+        coin.id.toLowerCase() === baseSymbol,
+    );
+
+    return foundCoin ? foundCoin.current_price || foundCoin.price : null;
+  } catch (error) {
+    console.error(
+      `[BULK PRICE ERROR] Failed to fetch or read bulk price cache:`,
+      error.message,
+    );
+    return null;
+  }
+};
+
+// Helper to get conversion rate from USD to user's currency (e.g., "EUR", "CAD")
+const getFiatConversionRate = async (targetCurrency) => {
+  const currency = targetCurrency ? targetCurrency.toUpperCase() : "USD";
+  if (currency === "USD") return 1.0; // No conversion needed
+
+  try {
+    // Using a free public endpoint for fiat exchange rates
+    const response = await axios.get(`https://open.er-api.com/v6/latest/USD`);
+    const rates = response.data.rates;
+
+    return rates[currency] || 1.0; // Fallback to 1.0 if currency code isn't found
+  } catch (error) {
+    console.error(
+      `[EXCHANGE RATE ERROR] Failed to fetch conversion rate for ${currency}:`,
+      error.message,
+    );
+    return 1.0; // Fallback to 1:1 if API fails
+  }
+};
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -145,9 +260,39 @@ const runAutoTradesForUsers = async () => {
 
       if (tradeAmount > currentBalance) continue;
 
-      // Pick a valid TradeSetting record
+      //  SELECT EXCHANGE SETTING BASED ON USER AUTOTRADESETTINGS PREFERENCE
+      const preferredExchange = user.autoTradeSettings?.tradeExchange
+        ? user.autoTradeSettings.tradeExchange.toLowerCase()
+        : "random";
+
+      let eligibleSettings = validSettings;
+
+      if (preferredExchange !== "random") {
+        eligibleSettings = validSettings.filter(
+          (setting) =>
+            setting.exchangeType &&
+            setting.exchangeType.toLowerCase().includes(preferredExchange),
+        );
+      }
+
+      // FALLBACK: If user's preference yields no results, fall back to all valid settings
+      if (eligibleSettings.length === 0) {
+        console.log(
+          `[AUTO-TRADE WARNING] No settings found matching preference "${preferredExchange}" for user ${user.email}. Falling back to any available exchange.`,
+        );
+        eligibleSettings = validSettings;
+      }
+
+      if (eligibleSettings.length === 0) {
+        console.log(
+          `[AUTO-TRADE] Skipped User ${user.email}: No valid trading settings available at all.`,
+        );
+        continue;
+      }
+
+      // Pick a random TradeSetting record from the filtered/fallback list
       const randomSetting =
-        validSettings[Math.floor(Math.random() * validSettings.length)];
+        eligibleSettings[Math.floor(Math.random() * eligibleSettings.length)];
 
       const selectedExchangeType = randomSetting.exchangeType; // Matches DB exactly (e.g., "crypto", "forex", "stocks")
       const selectedIcon = randomSetting.photo; // Matches DB photo exactly
@@ -161,29 +306,46 @@ const runAutoTradesForUsers = async () => {
       // ========= Generate realistic market price based on exchange type ========/
       let dynamicPrice = 0;
 
+      // Try fetching live price via bulk cache if it's crypto
       if (selectedExchangeType.toLowerCase().includes("crypto")) {
-        // Random Crypto price between $1,000 and $65,000
-        dynamicPrice = parseFloat(
-          (Math.random() * (65000 - 1000) + 1000).toFixed(2),
-        );
-      } else if (selectedExchangeType.toLowerCase().includes("forex")) {
-        // Random Forex exchange rate between 1.0500 and 1.5000
-        dynamicPrice = parseFloat(
-          (Math.random() * (1.5 - 1.05) + 1.05).toFixed(4),
-        );
-      } else if (
-        selectedExchangeType.toLowerCase().includes("stock") ||
-        selectedExchangeType.toLowerCase().includes("indices") ||
-        selectedExchangeType.toLowerCase().includes("commodities")
-      ) {
-        // Random Stock / Index / Commodity price between $50 and $500
-        dynamicPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
-      } else {
-        // Fallback price generator
-        dynamicPrice = parseFloat(
-          (Math.random() * (1000 - 100) + 100).toFixed(2),
-        );
+        dynamicPrice = await getPriceFromBulkCache(selectedSymbol);
       }
+
+      // Fallback or handle non-crypto exchange types
+      if (!dynamicPrice || isNaN(dynamicPrice)) {
+        if (selectedExchangeType.toLowerCase().includes("crypto")) {
+          // Random Crypto price between $1,000 and $65,000 (Fallback)
+          dynamicPrice = parseFloat(
+            (Math.random() * (65000 - 1000) + 1000).toFixed(2),
+          );
+        } else if (selectedExchangeType.toLowerCase().includes("forex")) {
+          // Random Forex exchange rate between 1.0500 and 1.5000
+          dynamicPrice = parseFloat(
+            (Math.random() * (1.5 - 1.05) + 1.05).toFixed(4),
+          );
+        } else if (
+          selectedExchangeType.toLowerCase().includes("stock") ||
+          selectedExchangeType.toLowerCase().includes("indices") ||
+          selectedExchangeType.toLowerCase().includes("commodities")
+        ) {
+          // Random Stock / Index / Commodity price between $50 and $500
+          dynamicPrice = parseFloat(
+            (Math.random() * (500 - 50) + 50).toFixed(2),
+          );
+        } else {
+          // Fallback price generator
+          dynamicPrice = parseFloat(
+            (Math.random() * (1000 - 100) + 100).toFixed(2),
+          );
+        }
+      }
+
+      // CONVERT PRICE TO USER'S PREFERRED CURRENCY
+      const userCurrency = user.currency.code || "USD";
+      const conversionRate = await getFiatConversionRate(userCurrency);
+
+      // Multiply the USD price by the exchange rate
+      dynamicPrice = parseFloat((dynamicPrice * conversionRate).toFixed(2));
 
       // Calculate units based on tradeAmount divided by dynamicPrice (e.g., Position Size)
       // Example: $100 stake / $50 price = 2 units
@@ -280,7 +442,7 @@ const runAutoTradesForUsers = async () => {
 };
 
 // Cron interval execution (Runs every 30 minute)
-cron.schedule("*/30 * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   console.log(
     "[CRON] Scanning for users with autoTradeCronJobStatus === 'OPEN'...",
   );

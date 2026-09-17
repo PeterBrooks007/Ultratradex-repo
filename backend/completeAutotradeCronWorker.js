@@ -138,7 +138,7 @@ const resolveExpiredTrades = async () => {
   }
 };
 
-cron.schedule("*/12 * * * *", async () => {
+cron.schedule("*/3 * * * *", async () => {
   console.log("[CRON] Scanning for pending expired bot trades...");
   await resolveExpiredTrades();
 });

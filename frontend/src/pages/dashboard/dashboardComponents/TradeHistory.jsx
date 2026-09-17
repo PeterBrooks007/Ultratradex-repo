@@ -14,6 +14,7 @@ import { adminGetAllUserTrades } from "../../../redux/features/trades/tradesSlic
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import TradeHistoryDrawer from "../../../components/drawers/TradeHistoryDrawer";
+import { CountdownTimer } from "../../../components/TradeHistoryOrdersComp";
 
 const TradeHistory = () => {
   const theme = useTheme();
@@ -44,6 +45,14 @@ const TradeHistory = () => {
       dispatch(adminGetAllUserTrades(user?._id));
     }
   }, [dispatch]);
+
+  const [expiredTrades, setExpiredTrades] = useState({});
+
+  // console.log(expiredTrades);
+
+  const handleExpire = (tradeId) => {
+    setExpiredTrades((prev) => ({ ...prev, [tradeId]: true }));
+  };
 
   const allTradeFiltered = Array.isArray(allTrades.trades)
     ? [...allTrades.trades]
@@ -198,15 +207,48 @@ const TradeHistory = () => {
                           >
                             -
                           </span>
-                          {trade?.status === "PENDING"
-                            ? "PENDING"
-                            : Intl.NumberFormat("en-US", {
-                                style: "currency",
-                                currency: user?.currency?.code,
-                                ...(trade?.profitOrLossAmount > 999999
-                                  ? { notation: "compact" }
-                                  : {}),
-                              }).format(trade?.profitOrLossAmount)}
+                          {trade?.status === "PENDING" ? (
+                            <Stack
+                              justifyContent={"space-between"}
+                              direction={"row"}
+                              spacing={1}
+                            >
+                              <Typography variant="subtitle2" color={"springgreen"}>
+                                {expiredTrades[trade?._id]
+                                  ? "Status "
+                                  : "Expire Time"} 
+                              </Typography>
+                              <Typography
+                                variant="subtitle2"
+                                color={
+                                  trade?.status?.toLowerCase() === "won"
+                                    ? theme.palette.mode === "light"
+                                      ? "#009e4a"
+                                      : "rgba(0, 255, 127, 0.8)"
+                                    : "red"
+                                }
+                              >
+                                {expiredTrades[trade?._id] ? (
+                                  trade?.status
+                                ) : (
+                                  <CountdownTimer
+                                    createdAt={trade?.createdAt}
+                                    expireTime={trade?.expireTime}
+                                    onExpire={() => handleExpire(trade?._id)}
+                                    trades={trade}
+                                  />
+                                )}
+                              </Typography>
+                            </Stack>
+                          ) : (
+                            Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: user?.currency?.code,
+                              ...(trade?.profitOrLossAmount > 999999
+                                ? { notation: "compact" }
+                                : {}),
+                            }).format(trade?.profitOrLossAmount)
+                          )}
                         </Typography>
                       </Stack>
                     </Stack>

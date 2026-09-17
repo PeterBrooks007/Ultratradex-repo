@@ -32,6 +32,7 @@ import {
   adminVerifyEmail,
 } from "../../../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
+import { getAllTradingSetting } from "../../../../redux/features/tradingSettings/tradingSettingsSlice";
 
 const AutoTradeSettingsDrawer = ({
   open,
@@ -46,6 +47,18 @@ const AutoTradeSettingsDrawer = ({
 
   const { id } = useParams();
   const { singleUser, isSemiLoading } = useSelector((state) => state.auth);
+
+  const { isLoading, allExchanges } = useSelector(
+    (state) => state.tradingSettings,
+  );
+
+  // console.log(allExchanges)
+
+  useEffect(() => {
+    if (allExchanges.length === 0) {
+      dispatch(getAllTradingSetting());
+    }
+  }, [dispatch, allExchanges.length]);
 
   useEffect(() => {
     if (autoTradeSettingsDrawerLoader) {
@@ -97,6 +110,10 @@ const AutoTradeSettingsDrawer = ({
   );
 
   const [resetchecked, setResetchecked] = useState(false);
+
+  const [tradeExchange, setTradeExchange] = useState(
+    singleUser?.autoTradeSettings?.tradeExchange,
+  );
 
   // Handle switch change
   const handleSwitchChange = (event) => {
@@ -179,6 +196,7 @@ const AutoTradeSettingsDrawer = ({
         resetchecked || isStartingFresh
           ? ""
           : singleUser?.autoTradeSettings?.autoTradeCronJobStartTime || "",
+      tradeExchange: tradeExchange || "random",
     };
 
     console.log(userData);
@@ -603,6 +621,43 @@ const AutoTradeSettingsDrawer = ({
                           <MenuItem value={"15"}>15 days</MenuItem>
                           <MenuItem value={"21"}>21 days</MenuItem>
                           <MenuItem value={"30"}>30 days</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <br />
+                      <FormControl fullWidth>
+                        <InputLabel id="demo-simple-select-label">
+                          SELECT EXCHANGE TO TRADE
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="demo-simple-select"
+                          value={tradeExchange}
+                          label="SELECT EXCHANGE TO TRADE"
+                          onChange={(e) => setTradeExchange(e.target.value)}
+                        >
+                          {/* Default Random Option */}
+                          <MenuItem value={"random"}>Random</MenuItem>
+
+                          {/* Dynamically Map Each Exchange from MongoDB */}
+                          {allExchanges &&
+                            allExchanges.length > 0 &&
+                            allExchanges.map((setting) => {
+                              // Optional: Skip or disable options that have no trading pairs
+                              const isDisabled =
+                                !setting.tradingPairs ||
+                                setting.tradingPairs.length === 0;
+
+                              return (
+                                <MenuItem
+                                  key={setting._id}
+                                  value={setting.exchangeType.toLowerCase()}
+                                  disabled={isDisabled}
+                                >
+                                  {setting.exchangeType.toUpperCase()}{" "}
+                                  {isDisabled ? "(No Pairs Available)" : ""}
+                                </MenuItem>
+                              );
+                            })}
                         </Select>
                       </FormControl>
                       <br />

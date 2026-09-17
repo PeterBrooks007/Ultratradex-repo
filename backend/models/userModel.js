@@ -224,6 +224,7 @@ const userSchema = mongoose.Schema(
         lastTradeAt: null, // Time to check when last trade placed and also when the whole trade started
         autotradeDuration: 3, // Numeric trade duration fallback in days (3days, 7days)
         autoTradeCronJobStartTime: null, // //Time to check when the trade started
+        tradeExchange: "random", // Trade exchange to trade from either crypto, forex, stocks etc or random
       },
     },
     withdrawalLocked: {

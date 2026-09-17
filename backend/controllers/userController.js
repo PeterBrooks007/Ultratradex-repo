@@ -1921,6 +1921,7 @@ const adminSetUserAutoTrade = asyncHandler(async (req, res) => {
     lastTradeAt,
     autotradeDuration,
     autoTradeCronJobStartTime,
+    tradeExchange
   } = req.body;
 
   const errors = validationResult(req);
@@ -1947,6 +1948,7 @@ const adminSetUserAutoTrade = asyncHandler(async (req, res) => {
     lastTradeAt,
     autotradeDuration,
     autoTradeCronJobStartTime,
+    tradeExchange
   };
 
   // Save the updated user

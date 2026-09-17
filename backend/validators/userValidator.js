@@ -764,6 +764,28 @@ const adminSetUserAutoTradeValidator = [
   .isString().withMessage("autoTradeCronJobStartTime must be a string")
 
 ,
+
+
+  body('tradeExchange')
+  .notEmpty().withMessage('tradeExchange is required')
+  .isString().withMessage("tradeExchange must be a string")
+//   .matches(/^[a-zA-Z0-9]+$/).withMessage('firstname must only contain letters Numbers')
+//   .isAlphanumeric().withMessage('First name must contain only letters and numbers and no white space.')
+  .isLength({ max: 20 }).withMessage('tradeExchange cannot exceed 20 characters')
+  .customSanitizer(value => purify.sanitize(value))
+  .custom(value => {
+    const decodedValue = decodeEntities(value);
+    const sanitizedValue = purify.sanitize(value); // Sanitize input again if needed
+
+    if (sanitizedValue !== decodedValue) {
+      throw new Error('tradeExchange contains invalid or malicious content');
+    }
+
+    return value.trim() === '' ? 
+      Promise.reject(new Error('tradeExchange cannot be empty or contain HTML entities')) : value;
+  }),
+
+
   
 ];
 
